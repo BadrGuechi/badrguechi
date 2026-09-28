@@ -571,7 +571,119 @@
       .hero::after { border-radius:80px 80px 8px 8px !important; }
       .badge-row { letter-spacing:1px; font-size:13px; }
     }
-  </style>
+  
+/* ===== retro-skin.css (override layer) ===== */
+/* ==========================================================================
+   RETRO-SKIN.CSS — non-destructive 8/16-bit override layer
+   Load AFTER the site's own <style>. Touches only visual properties:
+   no display/position/grid/flex/size changes, so layout + RTL stay intact.
+   Sections: 1 Palette · 2 Pixel rendering · 3 Dither · 4 Frames · 5 Buttons
+             6 Motion · 7 CRT overlay · 8 A11y / legibility
+   ========================================================================== */
+
+/* 1 ── PALETTE (NES-ish, tuned to the existing lapis/emerald/gold theme) ── */
+:root {
+  --rs-ink:   #0c0a06;   /* hard outline colour            */
+  --rs-hi:    #f1e6cc;   /* bevel highlight                */
+  --rs-lo:    #05080f;   /* bevel shade                    */
+  --rs-gold:  #dba52c;
+  --rs-lapis: #2f7fb8;
+  --rs-step:  4px;       /* one "art pixel" for frames     */
+}
+
+/* 2 ── PIXEL RENDERING: every bitmap-ish thing ─────────────────────────── */
+img, svg, canvas, video, picture, .flag-svg, .counter-img, .hero-logo img {
+  image-rendering: pixelated;            /* standard                       */
+  image-rendering: -moz-crisp-edges;     /* old Firefox                    */
+  -ms-interpolation-mode: nearest-neighbor;
+}
+svg { shape-rendering: crispEdges; }     /* no anti-aliased vector edges   */
+* { -webkit-font-smoothing: none; -moz-osx-font-smoothing: grayscale; }
+
+/* 3 ── DITHER: replace smooth gradients with 2×2 checker / Bayer-ish ───── */
+:root {
+  --dither-50: repeating-conic-gradient(rgba(0,0,0,.28) 0 25%, transparent 0 50%) 0 0 / 4px 4px;
+  --dither-25: linear-gradient(90deg, rgba(0,0,0,.22) 50%, transparent 0) 0 0 / 4px 4px,
+               linear-gradient(rgba(0,0,0,.22) 50%, transparent 0) 0 0 / 4px 4px;
+}
+.hero::before, .hero-shimmer, .hero-shimmer2 {
+  background: var(--dither-25) !important;   /* was soft shimmer gradient */
+  opacity: .5;
+}
+.card::before { background: var(--dither-50) !important; opacity: .35; }
+.counter-wrap, .footer { background-image: var(--dither-25); }
+
+/* 4 ── FRAMES: chunky 16-bit window borders (stacked hard shadows) ─────── */
+.site-nav, .lang-bar, .hero, .card, .counter-wrap, .footer, .soc-item, .counter-box {
+  border: var(--rs-step) solid var(--rs-ink);
+  box-shadow:
+    inset  var(--rs-step)  var(--rs-step) 0 rgba(241,230,204,.12),  /* top-left highlight  */
+    inset calc(-1*var(--rs-step)) calc(-1*var(--rs-step)) 0 rgba(0,0,0,.55), /* bottom-right shade */
+    0 0 0 var(--rs-step) var(--rs-lapis),                            /* outer coloured rim  */
+    calc(2*var(--rs-step)) calc(2*var(--rs-step)) 0 var(--rs-ink);   /* hard drop shadow    */
+}
+.card:hover, .soc-item:hover, .soc-item:focus-visible {
+  box-shadow:
+    inset var(--rs-step) var(--rs-step) 0 rgba(241,230,204,.2),
+    inset calc(-1*var(--rs-step)) calc(-1*var(--rs-step)) 0 rgba(0,0,0,.55),
+    0 0 0 var(--rs-step) var(--rs-gold),
+    calc(3*var(--rs-step)) calc(3*var(--rs-step)) 0 var(--rs-ink);
+}
+.card-title { border-bottom: var(--rs-step) solid var(--rs-ink); }
+.info-row   { border-bottom: 2px dashed rgba(241,230,204,.18); } /* pixel dash */
+
+/* 5 ── BUTTONS / NAV: raised → pressed (outset / inset) ────────────────── */
+.nav-link, .lbtn {
+  border: 3px solid var(--rs-ink);
+  box-shadow: inset 2px 2px 0 rgba(241,230,204,.25),
+              inset -2px -2px 0 rgba(0,0,0,.6),
+              3px 3px 0 var(--rs-ink);
+  cursor: pointer;
+}
+.nav-link:hover, .lbtn:hover, .lbtn.on {
+  box-shadow: inset 2px 2px 0 rgba(241,230,204,.4),
+              inset -2px -2px 0 rgba(0,0,0,.6),
+              3px 3px 0 var(--rs-gold);
+}
+.nav-link:active, .lbtn:active {           /* "pressed key" = swap bevel + nudge */
+  transform: translate(3px, 3px);
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,.65),
+              inset -2px -2px 0 rgba(241,230,204,.15);
+}
+/* form controls (none today; future-proofing) */
+input, textarea, select, button {
+  border: 3px solid var(--rs-ink); background: var(--rs-lo); color: var(--rs-hi);
+  font: inherit;
+  box-shadow: inset 3px 3px 0 rgba(0,0,0,.7), inset -3px -3px 0 rgba(241,230,204,.12);
+}
+
+/* 6 ── MOTION: frame-stepped only, never eased ─────────────────────────── */
+html { scroll-behavior: auto; }            /* no smooth scroll               */
+*, *::before, *::after {
+  transition-timing-function: steps(2, end) !important;
+  animation-timing-function: steps(4, end) !important;  /* frame-based       */
+}
+.card, .soc-item, .nav-link, .lbtn { transition: none !important; } /* instant states */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* 7 ── CRT OVERLAY (single fixed layer, click-through, very subtle) ────── */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.14) 0 1px, transparent 1px 3px), /* scanlines */
+    radial-gradient(ellipse at center, transparent 62%, rgba(0,0,0,.35) 100%);   /* vignette  */
+  mix-blend-mode: multiply;
+}
+
+/* 8 ── LEGIBILITY / A11Y ───────────────────────────────────────────────── */
+/* Arabic & Japanese keep their own readable faces (set by body.ar / body.jp);
+   bitmap fonts only ever apply to Latin display text. */
+p, .iv, .il, .hero-sub, .soc-handle { text-shadow: 1px 1px 0 var(--rs-ink); } /* crisp contrast lift */
+:focus-visible { outline: 3px solid var(--rs-gold); outline-offset: 3px; }
+
+</style>
 </head>
 <body>
 
