@@ -271,6 +271,14 @@
       background: var(--gold-soft); margin: 22px auto 0;
     }
 
+    /* creation stamp — sits under the greeting, inside the arch */
+    .hero-date {
+      max-width: 34ch; margin: 18px auto 0;
+      font-size: var(--fs-small); line-height: 1.7;
+      color: var(--muted); text-wrap: balance;
+    }
+    body.jp .hero-date { max-width: 26em; letter-spacing: .03em; }
+
     /* ── Sections ── */
     .section { margin-top: var(--sp-5); }
     .section + .section { margin-top: var(--sp-4); }
@@ -443,6 +451,10 @@
       <div class="badge-row">بدر ڨشي</div>
       <h1 class="hero-title">مرحبًا بكم في<br/>موقع بدر ڨشي</h1>
     </div>
+
+    <p class="hero-date en">This website was created on June 23, 2026 at 3:11 PM</p>
+    <p class="hero-date jp">このウェブサイトは2026年6月23日 午後3時11分に作成されました</p>
+    <p class="hero-date ar">تم إنشاء هذا الموقع في 23 يونيو 2026 على الساعة 3:11 مساءً</p>
   </header>
 
   <!-- ══════ ABOUT ══════ -->
