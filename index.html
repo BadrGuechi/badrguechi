@@ -348,6 +348,39 @@
     }
     .footer em { font-style: normal; color: var(--gold-dim); }
 
+    /* ── Comments — same hairlines, tint and label voice as the contact list ── */
+    .cm-field {
+      display: block; width: 100%; min-height: 112px; resize: vertical;
+      padding: 14px 16px; background: var(--tint); color: var(--text);
+      border: 1px solid var(--line); border-radius: 2px;
+      font: inherit; font-size: var(--fs-body); line-height: 1.7;
+      transition: border-color .25s var(--ease);
+    }
+    .cm-field::placeholder { color: var(--faint); opacity: 1; }
+    .cm-field:hover { border-color: var(--gold-soft); }
+    .cm-field:focus { border-color: var(--gold-dim); }
+    .cm-field:focus-visible { outline-offset: 3px; }
+    .cm-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 8px; }
+    .cm-count { font-size: var(--fs-small); color: var(--faint); direction: ltr; unicode-bidi: isolate; }
+    .cm-send { color: var(--text); }
+    .cm-send:disabled { opacity: .45; cursor: default; pointer-events: none; }
+    .cm-status { min-height: 1.7em; margin-top: 4px; font-size: var(--fs-small); color: var(--muted); }
+    .cm-list { margin-top: var(--sp-2); border-top: 1px solid var(--line); }
+    .cm-item { padding: 18px 2px; border-bottom: 1px solid var(--line); }
+    .cm-item.new { animation: cm-in .5s var(--ease); }
+    @keyframes cm-in { from { opacity: 0; transform: translateY(-5px); } }
+    .cm-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 4px; }
+    .cm-name { font: 500 var(--fs-label)/1.3 var(--label); letter-spacing: var(--track); color: var(--gold-dim); }
+    .cm-name::before {
+      content: ''; display: inline-block; width: 5px; height: 5px; background: var(--gold);
+      transform: rotate(45deg); margin-inline-end: 10px; vertical-align: middle;
+    }
+    .cm-date { font-size: var(--fs-small); color: var(--faint); }
+    .cm-text { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text); line-height: 1.75; }
+    .cm-empty { padding: 20px 2px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: var(--fs-small); }
+    .cm-note { margin-top: 10px; font-size: 13px; color: var(--faint); line-height: 1.6; }
+    body.ar .cm-note { font-size: 15px; }
+
     /* ── Responsive ── */
     @media (max-width: 640px) {
       .hero { border-radius: 50% 50% 3px 3px / 150px 150px 3px 3px; padding: 62px 20px 38px; }
@@ -385,6 +418,7 @@
     <a class="nav-link" href="#home"><span class="en">Home</span><span class="jp">ホーム</span><span class="ar">الرئيسية</span></a>
     <a class="nav-link" href="#about"><span class="en">About me</span><span class="jp">自己紹介</span><span class="ar">نبذة عني</span></a>
     <a class="nav-link" href="#contact"><span class="en">Contact</span><span class="jp">連絡先</span><span class="ar">تواصل</span></a>
+    <a class="nav-link" href="#comments"><span class="en">Comments</span><span class="jp">コメント</span><span class="ar">التعليقات</span></a>
   </nav>
 
   <!-- ══════ CONTROLS ══════ -->
@@ -509,6 +543,25 @@
     </div>
   </section>
 
+  <!-- ══════ COMMENTS ══════ -->
+  <section class="section" id="comments">
+    <h2 class="section-title en">Comments</h2>
+    <h2 class="section-title jp">コメント</h2>
+    <h2 class="section-title ar">التعليقات</h2>
+
+    <form id="cm-form" novalidate>
+      <label class="sr-only" for="cm-text"><span class="en">Write a comment</span><span class="jp">コメントを書く</span><span class="ar">اكتب تعليقك</span></label>
+      <textarea id="cm-text" class="cm-field" rows="4" maxlength="500" dir="auto"></textarea>
+      <div class="cm-bar">
+        <span class="cm-count" id="cm-count" aria-hidden="true">0 / 500</span>
+        <button type="submit" class="lbtn cm-send" id="cm-send"><span class="en">Post comment</span><span class="jp">投稿する</span><span class="ar">نشر التعليق</span></button>
+      </div>
+      <p class="cm-status" id="cm-status" role="status" aria-live="polite"></p>
+    </form>
+
+    <div class="cm-list" id="cm-list"></div>
+  </section>
+
   <!-- ══════ CLOSING ══════ -->
   <div class="deco en">❖ &nbsp;Stay true &nbsp;·&nbsp; Stay original &nbsp;·&nbsp; Stay Badr&nbsp; ❖</div>
   <div class="deco jp">❖ &nbsp;本物であれ &nbsp;·&nbsp; 独自であれ &nbsp;·&nbsp; バドルであれ&nbsp; ❖</div>
@@ -549,6 +602,7 @@ function setLang(l){
     b.setAttribute('aria-pressed', k === l);
   });
   applyLabels(l);
+  if (window.cmLang) window.cmLang(l);
 }
 
 /* ── Theme (dark / light) ── */
@@ -595,7 +649,7 @@ document.querySelectorAll('a.nav-link[href^="#"]').forEach(function(link){
 
 /* ── Active nav link follows the section in view ── */
 (function(){
-  var ids = ['home','about','contact'];
+  var ids = ['home','about','contact','comments'];
   var links = document.querySelectorAll('a.nav-link[href^="#"]');
   function setActive(id){
     links.forEach(function(a){
@@ -637,6 +691,115 @@ document.querySelectorAll('a.nav-link[href^="#"]').forEach(function(link){
   } else {
     showFallback();
   }
+})();
+
+/* ── Comments ──
+   Every comment is shown as "مجهول" / Anonymous — no name is ever collected.
+   To make comments visible to ALL visitors, put your Firebase project id below
+   (Firestore, collection "comments"). Left empty, comments are kept only in
+   the visitor's own browser. */
+(function(){
+  var FIREBASE_PROJECT = '';
+  var LS_KEY = 'badrguechi-comments', LS_LAST = 'badrguechi-comment-last';
+  var MAX = 500, COOLDOWN = 20000, KEEP = 50;
+  var T = {
+    en: { ph:'Write a comment…', anon:'Anonymous', empty:'No comments yet. Be the first to write one.',
+          ok:'Comment posted.', err:"Couldn't post. Try again in a moment.", wait:'Wait a moment before posting again.',
+          none:'Write a comment first.', load:"Couldn't load comments.",
+          note:'Comments are saved in this browser only until a database is connected.' },
+    jp: { ph:'コメントを書く…', anon:'匿名', empty:'まだコメントはありません。最初の一言をどうぞ。',
+          ok:'投稿しました。', err:'送信できませんでした。しばらくしてからもう一度お試しください。', wait:'少し待ってから、もう一度投稿してください。',
+          none:'コメントを入力してください。', load:'コメントを読み込めませんでした。',
+          note:'データベースに接続するまで、コメントはこのブラウザにのみ保存されます。' },
+    ar: { ph:'اكتب تعليقك هنا…', anon:'مجهول', empty:'لا توجد تعليقات بعد. كن أول من يكتب.',
+          ok:'تم نشر تعليقك.', err:'تعذّر النشر. حاول مرة أخرى بعد قليل.', wait:'انتظر قليلًا قبل نشر تعليق آخر.',
+          none:'اكتب تعليقًا أولًا.', load:'تعذّر تحميل التعليقات.',
+          note:'التعليقات محفوظة في هذا المتصفح فقط إلى أن تُربط قاعدة بيانات.' }
+  };
+  var LOC = { en:'en-GB', jp:'ja-JP', ar:'ar-DZ-u-nu-latn' };
+  var form = document.getElementById('cm-form'), field = document.getElementById('cm-text'),
+      count = document.getElementById('cm-count'), statusEl = document.getElementById('cm-status'),
+      list = document.getElementById('cm-list'), sendBtn = document.getElementById('cm-send');
+  if (!form) return;
+  var API = FIREBASE_PROJECT ? 'https://firestore.googleapis.com/v1/projects/' + encodeURIComponent(FIREBASE_PROJECT) + '/databases/(default)/documents/comments' : '';
+  var items = [], statusKey = '';
+
+  function curLang(){ return document.body.classList.contains('jp') ? 'jp' : document.body.classList.contains('ar') ? 'ar' : 'en'; }
+  function el(tag, cls, txt){ var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function fmt(at, k){
+    try { return new Date(at).toLocaleDateString(LOC[k], { year:'numeric', month:'short', day:'numeric' }); } catch (e) { return ''; }
+  }
+  function trio(fn){ var f = document.createDocumentFragment(); ['en','jp','ar'].forEach(function(k){ f.appendChild(el('span', k, fn(k))); }); return f; }
+
+  function node(c, isNew){
+    var art = el('article', 'cm-item' + (isNew ? ' new' : ''));
+    var head = el('div', 'cm-head'), name = el('span', 'cm-name'), date = el('span', 'cm-date');
+    name.appendChild(trio(function(k){ return T[k].anon; }));
+    date.appendChild(trio(function(k){ return fmt(c.at, k); }));
+    head.appendChild(name); head.appendChild(date);
+    var body = el('p', 'cm-text', c.text); body.setAttribute('dir', 'auto');
+    art.appendChild(head); art.appendChild(body);
+    return art;
+  }
+  function paint(markNew){
+    while (list.firstChild) list.removeChild(list.firstChild);
+    if (!items.length) {
+      var e = el('p', 'cm-empty'); e.appendChild(trio(function(k){ return T[k].empty; })); list.appendChild(e); return;
+    }
+    items.forEach(function(c, i){ list.appendChild(node(c, markNew && i === 0)); });
+  }
+  function setStatus(key){
+    statusKey = key || '';
+    statusEl.textContent = statusKey ? T[curLang()][statusKey] : '';
+  }
+  function updCount(){ count.textContent = field.value.length + ' / ' + MAX; }
+
+  function load(){
+    if (API) {
+      return fetch(API + '?orderBy=createdAt%20desc&pageSize=' + KEEP).then(function(r){ if (!r.ok) throw 0; return r.json(); })
+        .then(function(d){ return (d.documents || []).map(function(doc){
+          return { text: doc.fields.text.stringValue, at: doc.fields.createdAt.timestampValue };
+        }); });
+    }
+    try { return Promise.resolve(JSON.parse(localStorage.getItem(LS_KEY) || '[]')); } catch (e) { return Promise.resolve([]); }
+  }
+  function save(c){
+    if (API) {
+      return fetch(API, { method:'POST', headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({ fields:{ text:{ stringValue:c.text }, createdAt:{ timestampValue:c.at } } }) })
+        .then(function(r){ if (!r.ok) throw 0; });
+    }
+    try {
+      var a = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); a.unshift(c);
+      localStorage.setItem(LS_KEY, JSON.stringify(a.slice(0, KEEP))); return Promise.resolve();
+    } catch (e) { return Promise.reject(e); }
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var t = field.value.trim();
+    if (!t) { setStatus('none'); field.focus(); return; }
+    var last = 0; try { last = +localStorage.getItem(LS_LAST) || 0; } catch (x) {}
+    if (Date.now() - last < COOLDOWN) { setStatus('wait'); return; }
+    var c = { text: t.slice(0, MAX), at: new Date().toISOString() };
+    sendBtn.disabled = true;
+    save(c).then(function(){
+      try { localStorage.setItem(LS_LAST, String(Date.now())); } catch (x) {}
+      items.unshift(c); items = items.slice(0, KEEP); paint(true);
+      field.value = ''; updCount(); setStatus('ok');
+    }).catch(function(){ setStatus('err'); }).then(function(){ sendBtn.disabled = false; });
+  });
+  field.addEventListener('input', updCount);
+  field.addEventListener('keydown', function(e){ if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); sendBtn.click(); } });
+
+  window.cmLang = function(l){ field.placeholder = T[l].ph; if (statusKey) setStatus(statusKey); };
+
+  if (!API) {
+    var note = el('p', 'cm-note'); note.appendChild(trio(function(k){ return T[k].note; }));
+    list.parentNode.appendChild(note);
+  }
+  window.cmLang(curLang()); updCount();
+  load().then(function(r){ items = r; paint(false); }).catch(function(){ paint(false); setStatus('load'); });
 })();
 
 /* ── Music toggle ── */
