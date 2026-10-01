@@ -699,7 +699,7 @@ document.querySelectorAll('a.nav-link[href^="#"]').forEach(function(link){
    (Firestore, collection "comments"). Left empty, comments are kept only in
    the visitor's own browser. */
 (function(){
-  var FIREBASE_PROJECT = '';
+  var FIREBASE_PROJECT = 'my-website-comments';
   var LS_KEY = 'badrguechi-comments', LS_LAST = 'badrguechi-comment-last';
   var MAX = 500, COOLDOWN = 20000, KEEP = 50;
   var T = {
