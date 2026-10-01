@@ -381,6 +381,53 @@
     .cm-note { margin-top: 10px; font-size: 13px; color: var(--faint); line-height: 1.6; }
     body.ar .cm-note { font-size: 15px; }
 
+    /* ── Tabs: panel switching + "Coming Soon" panel ──
+       Uses only existing tokens, so dark/light + language scaling just work. */
+    .tab-panel[hidden] { display: none !important; }
+    .tab-panel.tab-enter { animation: tab-in .5s var(--ease) both; }
+    @keyframes tab-in { from { opacity: 0; transform: translateY(8px); } }
+
+    #panel-soon {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: max(340px, 55vh); text-align: center;
+      padding: var(--sp-3) 0;
+    }
+    .soon-mark {
+      position: relative; isolation: isolate;
+      font: 700 clamp(130px, 30vw, 210px)/1 'Aref Ruqaa', 'Amiri', serif;  /* same glyph in every language */
+      color: var(--gold);
+      text-shadow: 0 0 22px var(--gold-soft);
+      animation: soon-glow 4.4s ease-in-out infinite;
+      user-select: none;
+    }
+    .soon-mark::before {                 /* soft halo behind the glyph */
+      content: ''; position: absolute; z-index: -1; inset: 4% -35%;
+      background: radial-gradient(closest-side, var(--gold-soft), transparent);
+      opacity: .35; animation: soon-halo 4.4s ease-in-out infinite;
+    }
+    @keyframes soon-glow {
+      0%, 100% { text-shadow: 0 0 14px var(--gold-soft); }
+      50%      { text-shadow: 0 0 34px var(--gold-soft), 0 0 60px var(--gold-soft); }
+    }
+    @keyframes soon-halo {
+      0%, 100% { opacity: .22; transform: scale(.92); }
+      50%      { opacity: .6;  transform: scale(1.06); }
+    }
+    .soon-title {
+      margin-top: var(--sp-1);
+      font-family: var(--display); font-weight: 700;
+      font-size: var(--fs-title); line-height: 1.5; letter-spacing: .05em;
+      color: var(--text);
+    }
+    body.jp .soon-title { font-weight: 500; letter-spacing: .06em; }
+    body.ar .soon-title { letter-spacing: 0; }
+    .soon-orn { display: flex; align-items: center; gap: 12px; margin-top: var(--sp-2); }
+    .soon-orn::before, .soon-orn::after { content: ''; width: 34px; height: 1px; background: var(--gold-soft); }
+    .soon-orn i { width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); }
+    @media (prefers-reduced-motion: reduce) {
+      .soon-mark, .soon-mark::before, .tab-panel.tab-enter { animation: none; }
+    }
+
     /* ── Responsive ── */
     @media (max-width: 640px) {
       .hero { border-radius: 50% 50% 3px 3px / 150px 150px 3px 3px; padding: 62px 20px 38px; }
@@ -419,6 +466,8 @@
     <a class="nav-link" href="#about"><span class="en">About me</span><span class="jp">自己紹介</span><span class="ar">نبذة عني</span></a>
     <a class="nav-link" href="#contact"><span class="en">Contact</span><span class="jp">連絡先</span><span class="ar">تواصل</span></a>
     <a class="nav-link" href="#comments"><span class="en">Comments</span><span class="jp">コメント</span><span class="ar">التعليقات</span></a>
+    <!-- In-page tab (a <button>, so it never navigates or opens a new window) -->
+    <button type="button" class="nav-link" id="tab-soon-btn" aria-controls="panel-soon"><span class="en">Coming Soon</span><span class="jp">近日公開</span><span class="ar">قريبًا</span></button>
   </nav>
 
   <!-- ══════ CONTROLS ══════ -->
@@ -468,6 +517,9 @@
       </button>
     </div>
   </div>
+
+  <!-- ══════ MAIN PANEL (everything that used to sit under the nav) ══════ -->
+  <div id="panel-main" class="tab-panel">
 
   <!-- ══════ HERO ══════ -->
   <header class="hero" id="home">
@@ -580,6 +632,15 @@
     <div class="counter-note ar">يعمل تلقائيًا بمجرد نشر الموقع على الإنترنت</div>
   </div>
 
+  </div><!-- /#panel-main -->
+
+  <!-- ══════ COMING SOON PANEL ══════ -->
+  <section id="panel-soon" class="tab-panel" aria-labelledby="soon-title" hidden>
+    <div class="soon-mark" aria-hidden="true">?</div>
+    <h2 class="soon-title" id="soon-title"><span class="en">Coming Soon</span><span class="jp">近日公開</span><span class="ar">قريبًا</span></h2>
+    <div class="soon-orn" aria-hidden="true"><i></i></div>
+  </section>
+
   <footer class="footer">
     <div class="en">BadrGuechi © 2026 &nbsp;·&nbsp; Made by <em>Qu7msh</em> &nbsp;·&nbsp; All Rights Reserved</div>
     <div class="jp">BadrGuechi © 2026 &nbsp;·&nbsp; <em>Qu7msh</em> が制作 &nbsp;·&nbsp; 全著作権所有</div>
@@ -659,6 +720,7 @@ document.querySelectorAll('a.nav-link[href^="#"]').forEach(function(link){
     });
   }
   function update(){
+    if (document.body.classList.contains('view-soon')) return;   /* tab: Coming Soon is open */
     var y = window.scrollY + window.innerHeight * 0.35, cur = ids[0];
     ids.forEach(function(id){
       var el = document.getElementById(id);
@@ -800,6 +862,44 @@ document.querySelectorAll('a.nav-link[href^="#"]').forEach(function(link){
   }
   window.cmLang(curLang()); updCount();
   load().then(function(r){ items = r; paint(false); }).catch(function(){ paint(false); setStatus('load'); });
+})();
+
+/* ── Tabs: Home sections <-> Coming Soon (no reload, no new window) ── */
+(function(){
+  var btn   = document.getElementById('tab-soon-btn');
+  var main  = document.getElementById('panel-main');
+  var soon  = document.getElementById('panel-soon');
+  var nav   = document.querySelector('.site-nav');
+  if (!btn || !main || !soon || !nav) return;
+
+  function enter(panel){            /* replay the fade-in each time a panel appears */
+    panel.classList.remove('tab-enter'); void panel.offsetWidth; panel.classList.add('tab-enter');
+  }
+  function show(which){
+    var toSoon = which === 'soon';
+    main.hidden = toSoon;
+    soon.hidden = !toSoon;
+    document.body.classList.toggle('view-soon', toSoon);
+    btn.classList.toggle('active', toSoon);
+    if (toSoon) {
+      btn.setAttribute('aria-current', 'true');
+      nav.querySelectorAll('a.nav-link').forEach(function(a){ a.classList.remove('active'); a.removeAttribute('aria-current'); });
+      window.scrollTo(0, 0);
+    } else {
+      btn.removeAttribute('aria-current');
+      window.dispatchEvent(new Event('scroll'));   /* let the scroll-spy re-mark the section in view */
+    }
+    enter(toSoon ? soon : main);
+  }
+
+  btn.addEventListener('click', function(){ if (soon.hidden) show('soon'); });
+
+  /* Clicking Home / About / Contact / Comments while on Coming Soon: reveal the main
+     panel first (capture phase = runs before the smooth-scroll handler), then it scrolls. */
+  nav.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a.nav-link[href^="#"]');
+    if (a && soon.hidden === false) show('main');
+  }, true);
 })();
 
 /* ── Music toggle ── */
