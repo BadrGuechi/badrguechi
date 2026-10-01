@@ -699,7 +699,7 @@ document.querySelectorAll('a.nav-link[href^="#"]').forEach(function(link){
    (Firestore, collection "comments"). Left empty, comments are kept only in
    the visitor's own browser. */
 (function(){
-  var FIREBASE_PROJECT = 'my-website-comments';
+  var FIREBASE_PROJECT = 'my-website-comments-a7abc';
   var LS_KEY = 'badrguechi-comments', LS_LAST = 'badrguechi-comment-last';
   var MAX = 500, COOLDOWN = 20000, KEEP = 50;
   var T = {
@@ -767,7 +767,7 @@ document.querySelectorAll('a.nav-link[href^="#"]').forEach(function(link){
     if (API) {
       return fetch(API, { method:'POST', headers:{ 'Content-Type':'application/json' },
         body: JSON.stringify({ fields:{ text:{ stringValue:c.text }, createdAt:{ timestampValue:c.at } } }) })
-        .then(function(r){ if (!r.ok) throw 0; });
+        .then(function(r){ if (!r.ok) { return r.text().then(function(b){ console.error('Firestore error', r.status, b); throw 0; }); } });
     }
     try {
       var a = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); a.unshift(c);
