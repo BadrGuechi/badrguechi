@@ -127,6 +127,7 @@
       --track:    0;
     }
 
+    @font-face { font-family: 'Islamic Icons'; src: url('data:font/woff2;base64,d09GMgABAAAAAAK8AA0AAAAABXgAAAJtAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGhYcIAZgADQREAqCAIFTATYCJAMICwYABCAFhBQHIBtiBAgeg227cZxBajhW+GKrrtf6Q4jGsswW0RFKZAksJLJrVVUfUJ9/BEfKstG9+fZzN9fIuz4RSyxi/kVsKx2xTvJGXCQRCinif56+XDA4lmg5gkWt/hS4m4rVacWS7Pm/GQc0AMfEALDNvQ/UHJZOoMC3ZYEEvqiXHtgJ3rt3q3bsJZIkC/tjBEoBgSQkgWL1trjXVQQF8SNEF0EcQG5BgSV55GXy+gGiX5blZOykNASulDe7CJvZ/Ht+3pC/978Ez/+OtwjI+ZmXQTMPEkTU8giuVzMgNx78XmazzGuaEJDPUahYFV94vwRIIBelGAFsAiAXJMW53iTnQY96NrLOXF4lQvF1zE3g7ihORj0k5YlRzmEUjZFr3EskKB/p4LG1+3C17zl1UwnCs4odfMnL9K/t4evrUT+w9myKyKMeEm3UU0I80WEI9K7rnS4qqUy1M4duhvWwrJvl8l/2rNL87C62zfFH4L+Jg5F6jG4zGUZ31g0QCF5fLv9cVgz/QhEE8F/qfWCP+T2/b/T2WvzKL5EvgSD/2+0eUFqHnl6qQ1A/kPIefC3IGnIhVedeQYC9Ihc8IjcEOAE8KrQSqaTcUyrHjOdybpbKM+KvnB9TZRrDvFHuJJpYkMgcKgaFpoNeNKtpamqDBAYNjyG4FoJC1zAUozw9w+PBW5JGAmEhQjBZwAtY2TYNRQgAc4n/VCLSXGqrqtpBoBh4CLVmQX0HbUDDZAiopty2ymBgSYYDahysCKr3qWsZvH4vTaeTafoqKmQ0iU6CUCHKUDwJRSOPYhlGIqh0rVdUtVUwj2ql/3PLaDrhax4g24VrCg==') format('woff2'); font-display: swap; unicode-range: U+E04A; }
     /* ── Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-padding-top: 24px; -webkit-text-size-adjust: 100%; scrollbar-width: thin; scrollbar-color: var(--bronze) var(--bg); }
@@ -246,11 +247,11 @@
       border-radius: 50% 50% 3px 3px / 220px 220px 3px 3px;
       background-color: var(--paper2);
     }
-    .hero::before {                      /* keystone */
-      content: ''; position: absolute; top: -5px; left: 50%;
-      width: 9px; height: 9px; margin-left: -4.5px;
-      background: var(--bronze); transform: rotate(45deg);
-      box-shadow: 0 0 0 4px var(--bg);
+    .hero::before {                      /* keystone: octagram glyph U+E04A (Islamic Icons, subset to this one glyph) */
+      content: '\E04A'; position: absolute; z-index: 1; top: -15px; left: 50%;
+      width: 30px; height: 30px; margin-left: -15px; display: grid; place-items: center;
+      font: 400 24px/1 'Islamic Icons'; color: var(--bronze);
+      background: var(--bg); border-radius: 50%;
     }
     .hero::after {                       /* inner hairline */
       content: ''; position: absolute; inset: 7px;
